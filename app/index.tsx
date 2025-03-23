@@ -1,34 +1,59 @@
 import { router } from "expo-router";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { FC } from "react";
 
-export default function Index() {
+// Yalnızca izin verilen route'ları belirtiyoruz:
+type RouteType = "/cakar" | "/led" | "/rgbdisco";
+
+type ItemType = {
+  title: string;
+  image: any;
+  route: RouteType;
+};
+
+const items: ItemType[] = [
+  {
+    title: "Kırmızı-Mavi Polis Çakar",
+    image: require("../assets/images/police.jpg"),
+    route: "/cakar",
+  },
+  {
+    title: "Fener Led Çakar",
+    image: require("../assets/images/led.jpg"),
+    route: "/led",
+  },
+  {
+    title: "RGB Disco Işığı",
+    image: require("../assets/images/disco.jpg"),
+    route: "/rgbdisco",
+  },
+];
+
+const Index: FC = () => {
   return (
-    <View className="bg-neutral-800 h-full flex justify-evenly items-center space-y-6 gap-10">
-      <View>
-        <TouchableOpacity onPress={() => router.push("/cakar")}>
-          <Image
-            source={require("../assets/images/police.jpg")}
-            className="w-80 h-80 rounded-full"
-            resizeMode="cover"
-          />
-          <Text className="text-center text-white text-2xl mt-2 ">
-            Kırmız-Mavi Polis Çakar
-          </Text>
-        </TouchableOpacity>
+    <ScrollView className="bg-neutral-900 px-4 pt-10 mt-10">
+      <View className="flex flex-col space-y-6 pb-10">
+        {items.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            onPress={() => router.push(item.route)}
+            className="bg-neutral-800 rounded-2xl shadow-md shadow-black p-4 mt-2"
+          >
+            <View className="items-center">
+              <Image
+                source={item.image}
+                className="w-40 h-40 rounded-full"
+                resizeMode="cover"
+              />
+              <Text className="text-white text-xl font-semibold mt-4 text-center">
+                {item.title}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))}
       </View>
-
-      <View>
-        <TouchableOpacity onPress={() => router.push("/led")}>
-          <Image
-            source={require("../assets/images/led.jpg")}
-            className="w-80 h-80 rounded-full"
-            resizeMode="cover"
-          />
-          <Text className="text-center text-white text-2xl mt-2 ">
-            Fener Led Çakar
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </ScrollView>
   );
-}
+};
+
+export default Index;

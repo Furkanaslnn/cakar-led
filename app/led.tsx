@@ -1,10 +1,4 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import Slider from "@react-native-community/slider";
@@ -15,32 +9,36 @@ export default function LedControl() {
   const [permission, requestPermission] = useCameraPermissions();
   const [flashMode, setFlashMode] = useState<MyFlashMode>("off");
   const [isBlinking, setIsBlinking] = useState(false);
-  const [blinkSpeed, setBlinkSpeed] = useState(10);
+  const [blinkIntervalMs, setBlinkIntervalMs] = useState(500);
+  const [bgColor, setBgColor] = useState("#000");
   const blinkInterval = useRef<NodeJS.Timeout | null>(null);
-
-  const calculatedMs = 1000 - blinkSpeed * 10;
 
   useEffect(() => {
     if (isBlinking) {
+      let isOn = false;
+
       blinkInterval.current = setInterval(() => {
-        setFlashMode((prev) => (prev === "on" ? "off" : "on"));
-      }, calculatedMs);
+        isOn = !isOn;
+        setFlashMode(isOn ? "on" : "off");
+        setBgColor(isOn ? "#FFF" : "#000");
+      }, blinkIntervalMs / 2); // intervalin yarısı açık, yarısı kapalı
     } else {
       setFlashMode("off");
+      setBgColor("#000");
       if (blinkInterval.current) clearInterval(blinkInterval.current);
     }
 
     return () => {
       if (blinkInterval.current) clearInterval(blinkInterval.current);
     };
-  }, [isBlinking, blinkSpeed]);
+  }, [isBlinking, blinkIntervalMs]);
 
   const toggleBlinking = () => {
     setIsBlinking((prev) => !prev);
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: bgColor }]}>
       {permission?.granted ? (
         <>
           <CameraView
@@ -64,19 +62,25 @@ export default function LedControl() {
           </TouchableOpacity>
 
           <View style={styles.sliderContainer}>
-            <Text style={styles.sliderLabel}>Flash Speed: {blinkSpeed}</Text>
+            <Text
+              style={[
+                styles.sliderLabel,
+                { color: bgColor === "#000" ? "#FFF" : "#000" },
+              ]}
+            >
+              Flash Interval: {blinkIntervalMs} ms
+            </Text>
             <Slider
               style={styles.slider}
-              minimumValue={1}
-              maximumValue={100}
-              step={10}
-              value={blinkSpeed}
-              onValueChange={(value: number) => setBlinkSpeed(value)}
+              minimumValue={400}
+              maximumValue={700}
+              step={100}
+              value={blinkIntervalMs}
+              onValueChange={(value: number) => setBlinkIntervalMs(value)}
               minimumTrackTintColor="#2563EB"
               maximumTrackTintColor="#CBD5E1"
               thumbTintColor="#2563EB"
             />
-            <Text style={styles.msText}>Interval: {calculatedMs} ms</Text>
           </View>
         </>
       ) : (
@@ -99,7 +103,6 @@ export default function LedControl() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3F4F6",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -135,17 +138,10 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginBottom: 8,
     textAlign: "center",
-    color: "#111827",
   },
   slider: {
     width: "100%",
     height: 40,
-  },
-  msText: {
-    fontSize: 14,
-    marginTop: 8,
-    textAlign: "center",
-    color: "#6B7280",
   },
   centered: {
     alignItems: "center",
