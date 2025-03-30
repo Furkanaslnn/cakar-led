@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import Slider from "@react-native-community/slider";
 
@@ -9,36 +9,46 @@ export default function LedControl() {
   const [permission, requestPermission] = useCameraPermissions();
   const [flashMode, setFlashMode] = useState<MyFlashMode>("off");
   const [isBlinking, setIsBlinking] = useState(false);
-  const [blinkIntervalMs, setBlinkIntervalMs] = useState(500);
-  const [bgColor, setBgColor] = useState("#000");
-  const blinkInterval = useRef<NodeJS.Timeout | null>(null);
+  const [blinkOnDuration, setBlinkOnDuration] = useState(300); // kullanıcı girdisi
 
   useEffect(() => {
-    if (isBlinking) {
-      let isOn = false;
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
 
-      blinkInterval.current = setInterval(() => {
-        isOn = !isOn;
-        setFlashMode(isOn ? "on" : "off");
-        setBgColor(isOn ? "#FFF" : "#000");
-      }, blinkIntervalMs / 2); // intervalin yarısı açık, yarısı kapalı
+    const blink = () => {
+      if (!isMounted || !isBlinking) return;
+
+      setFlashMode("on");
+
+      timeoutId = setTimeout(() => {
+        if (!isMounted || !isBlinking) return;
+
+        setFlashMode("off");
+
+        timeoutId = setTimeout(() => {
+          blink(); // döngü
+        }, blinkOnDuration * 2); // sönme süresi = yanma süresi * 2
+      }, blinkOnDuration);
+    };
+
+    if (isBlinking) {
+      blink();
     } else {
       setFlashMode("off");
-      setBgColor("#000");
-      if (blinkInterval.current) clearInterval(blinkInterval.current);
     }
 
     return () => {
-      if (blinkInterval.current) clearInterval(blinkInterval.current);
+      isMounted = false;
+      clearTimeout(timeoutId);
     };
-  }, [isBlinking, blinkIntervalMs]);
+  }, [isBlinking, blinkOnDuration]);
 
   const toggleBlinking = () => {
     setIsBlinking((prev) => !prev);
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: bgColor }]}>
+    <View style={styles.container}>
       {permission?.granted ? (
         <>
           <CameraView
@@ -62,21 +72,17 @@ export default function LedControl() {
           </TouchableOpacity>
 
           <View style={styles.sliderContainer}>
-            <Text
-              style={[
-                styles.sliderLabel,
-                { color: bgColor === "#000" ? "#FFF" : "#000" },
-              ]}
-            >
-              Flash Interval: {blinkIntervalMs} ms
+            <Text style={styles.sliderLabel}>
+              Yanma Süresi: {blinkOnDuration} ms {"\n"}
+              Sönme Süresi: {blinkOnDuration * 2} ms
             </Text>
             <Slider
               style={styles.slider}
-              minimumValue={400}
-              maximumValue={700}
+              minimumValue={0}
+              maximumValue={500}
               step={100}
-              value={blinkIntervalMs}
-              onValueChange={(value: number) => setBlinkIntervalMs(value)}
+              value={blinkOnDuration}
+              onValueChange={(value: number) => setBlinkOnDuration(value)}
               minimumTrackTintColor="#2563EB"
               maximumTrackTintColor="#CBD5E1"
               thumbTintColor="#2563EB"
@@ -106,6 +112,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+    backgroundColor: "#000",
   },
   hiddenCamera: {
     width: 1,
@@ -137,6 +144,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     marginBottom: 8,
+    color: "#FFF",
     textAlign: "center",
   },
   slider: {
