@@ -54,9 +54,7 @@ export default function RGBDisco() {
         style={styles.button}
         onPress={() => setIsPlaying((prev) => !prev)}
       >
-        <Text style={styles.buttonText}>
-          {isPlaying ? "Stop" : "Start"} Disco
-        </Text>
+        <Text style={styles.buttonText}>{isPlaying ? "Durdur" : "Başlat"}</Text>
       </TouchableOpacity>
     </Animated.View>
   );
