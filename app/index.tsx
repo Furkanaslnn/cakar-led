@@ -4,7 +4,7 @@ import { FC } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // Yalnızca izin verilen route'ları belirtiyoruz:
-type RouteType = "/cakar" | "/led" | "/rgbdisco";
+type RouteType = "/cakar" | "/led" | "/rgbdisco" | "/night";
 
 type ItemType = {
   title: string;

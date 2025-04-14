@@ -1,12 +1,12 @@
 // app/_layout.tsx
 
 import { Stack } from "expo-router";
-import "../global.css";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as NavigationBar from "expo-navigation-bar";
 import { Platform } from "react-native";
 import { useEffect } from "react";
+import "../global.css";
 
 export default function RootLayout() {
   useEffect(() => {
